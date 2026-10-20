@@ -37,6 +37,17 @@ async function requestJson(baseUrl, path, options = {}) {
   return { response, data: await response.json() };
 }
 
+test("GET / sirve el frontend del gestor de tareas", async t => {
+  const baseUrl = await startTestServer(t);
+
+  const response = await fetch(`${baseUrl}/`);
+  const html = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("content-type").includes("text/html"), true);
+  assert.match(html, /<h1>Gestor de tareas<\/h1>/);
+});
+
 test("GET /api/health informa que la API está disponible", async t => {
   const baseUrl = await startTestServer(t);
 
