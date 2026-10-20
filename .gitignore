@@ -1,0 +1,12 @@
+# Dependencias instaladas por npm
+node_modules/
+
+# Variables de entorno con posibles secretos
+.env
+.env.local
+
+# Archivos generados por pruebas y editores
+coverage/
+*.log
+.DS_Store
+Thumbs.db

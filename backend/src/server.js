@@ -1,25 +1,28 @@
-const express = require("express");
-const cors = require("cors");
-const { TaskRepository } = require("./taskRepository");
-const { TaskService } = require("./taskService");
-const { createTaskController } = require("./taskController");
-const { createTaskRoutes } = require("./taskRoutes");
+const { createApp } = require("./app");
+const { TaskService } = require("./application/services/TaskService");
+const { InMemoryTaskRepository } = require("./infrastructure/repositories/InMemoryTaskRepository");
 
-const app = express();
+/**
+ * Punto de composición de la aplicación ("composition root").
+ *
+ * Aquí se eligen las implementaciones concretas y se conectan las capas:
+ * repositorio en memoria -> servicio -> controlador -> aplicación Express.
+ * Es el único archivo que conoce todas las piezas al mismo tiempo.
+ */
 const port = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
+function startServer() {
+  const repository = new InMemoryTaskRepository();
+  const taskService = new TaskService(repository);
+  const app = createApp({ taskService });
 
-const repository = new TaskRepository();
-const service = new TaskService(repository);
-const controller = createTaskController(service);
+  return app.listen(port, () => {
+    console.log(`API lista en http://localhost:${port}`);
+  });
+}
 
-app.get("/api/health", (req, res) => res.json({ status: "ok" }));
-app.use("/api/tasks", createTaskRoutes(controller));
-
-app.use((error, req, res, next) => {
-  res.status(error.statusCode || 500).json({ error: error.message || "Error interno del servidor" });
-});
-
-app.listen(port, () => console.log(`API lista en http://localhost:${port}`));
+// Solo se inicia el servidor cuando se ejecuta este archivo directamente.
+// Así las pruebas pueden importar la aplicación sin abrir un puerto.
+if (require.main === module) {
+  startServer();
+}
