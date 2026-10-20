@@ -9,7 +9,7 @@
 <body>
   <main class="container">
     <header>
-      <p class="eyebrow">SENA · ADSO</p>
+      <p class="eyebrow"> Vannesa Quiroga - Valery Tellez </p>
       <h1>Gestor de tareas</h1>
       <p class="muted">Proyecto base para practicar separación de responsabilidades.</p>
       <span id="api-status" class="status">Conectando con API…</span>
@@ -32,10 +32,20 @@
         <h2>Tablero de trabajo</h2>
         <button id="refresh" class="secondary" type="button">Actualizar</button>
       </div>
+      <p id="board-message" class="board-message" role="status"></p>
       <div id="task-list" class="task-list"></div>
     </section>
     <footer>Base didáctica: los datos se guardan en memoria y se reinician al detener el backend.</footer>
   </main>
+  <!--
+    Scripts clásicos en orden de dependencia. Se evita usar módulos ES para
+    que el proyecto siga funcionando al abrir index.html directamente con
+    doble clic (sin un servidor de archivos estáticos).
+  -->
+  <script src="src/config.js"></script>
+  <script src="src/constants.js"></script>
+  <script src="src/api/taskApi.js"></script>
+  <script src="src/ui/taskListView.js"></script>
   <script src="src/app.js"></script>
 </body>
 </html>
