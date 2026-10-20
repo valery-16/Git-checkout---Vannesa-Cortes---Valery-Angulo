@@ -9,7 +9,7 @@
    * Convierte los datos que devuelve la API en HTML y actualiza los mensajes
    * de la pantalla. No hace peticiones HTTP ni conoce reglas de negocio.
    */
-  function createTaskListView({ taskList, message, apiStatus }) {
+  function createTaskListView({ taskList, message, boardMessage, apiStatus }) {
     function renderTasks(tasks) {
       if (!tasks.length) {
         taskList.innerHTML = "<p>No hay tareas todavía. Crea la primera.</p>";
@@ -22,16 +22,13 @@
     function renderTaskCard(task) {
       return `
         <article class="task">
-          <div class="task-top">
-            <div>
-              <h3>${escapeHtml(task.title)}</h3>
-              <p>${escapeHtml(task.description || "Sin descripción")}</p>
-            </div>
-            <strong>#${task.id}</strong>
+          <div class="task-content">
+            <h3>${escapeHtml(task.title)}</h3>
+            <p>${escapeHtml(task.description || "Sin descripción")}</p>
           </div>
           <div class="task-actions">
             <label for="status-${task.id}">Estado</label>
-            <select id="status-${task.id}" data-task-id="${task.id}">
+            <select id="status-${task.id}" class="task-status" data-task-id="${task.id}">
               ${renderStatusOptions(task.status)}
             </select>
             <button type="button" class="secondary" data-save-id="${task.id}">Guardar estado</button>
@@ -56,22 +53,58 @@
       apiStatus.classList.toggle("status-error", !isConnected);
     }
 
-    function showMessage(text, type = "error") {
-      message.textContent = text;
-      message.dataset.type = type;
-    }
+    const formMessage = createMessagePresenter(message);
+    const boardStatus = createMessagePresenter(boardMessage);
 
-    function clearMessage() {
-      message.textContent = "";
-      delete message.dataset.type;
+    /**
+     * Deshabilita un botón mientras hay una petición en curso y le cambia el
+     * texto. Al terminar restaura su estado original.
+     */
+    function setButtonBusy(button, isBusy, busyText = "Procesando…") {
+      if (!button) {
+        return;
+      }
+
+      if (isBusy) {
+        button.dataset.idleText = button.textContent;
+        button.textContent = busyText;
+        button.disabled = true;
+        return;
+      }
+
+      if (button.dataset.idleText) {
+        button.textContent = button.dataset.idleText;
+        delete button.dataset.idleText;
+      }
+
+      button.disabled = false;
     }
 
     return {
       renderTasks,
       renderLoadError,
       renderApiStatus,
-      showMessage,
-      clearMessage
+      showMessage: formMessage.show,
+      clearMessage: formMessage.clear,
+      showBoardMessage: boardStatus.show,
+      clearBoardMessage: boardStatus.clear,
+      setButtonBusy
+    };
+  }
+
+  /**
+   * Controla el texto y el tipo de un mensaje de estado del DOM.
+   */
+  function createMessagePresenter(element) {
+    return {
+      show(text, type = "error") {
+        element.textContent = text;
+        element.dataset.type = type;
+      },
+      clear() {
+        element.textContent = "";
+        delete element.dataset.type;
+      }
     };
   }
 
